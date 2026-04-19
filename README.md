@@ -62,6 +62,15 @@ No captcha is truly "unsolvable by bots" in 2026. Modern vision models crack ima
 | `ADMIN_PASSWORD` | admin login. **set this in prod.** |
 | `IP_SALT` | salt for hashing IPs. Rotate to invalidate old bans. |
 | `CAPTCHA_SECRET` | HMAC key for captcha tokens. |
+| `POSTER_ID_SECRET` | HMAC key for per-thread poster IDs. Rotate to reset all thread IDs. |
+
+## Per-thread poster IDs
+
+Within a single thread, the same hashed IP always shows the same 8-char poster ID (e.g. `#5859a988`). Across different threads, the same IP gets a different ID — so you can tell "this is the same person in this thread" without tracking them across the site. The OP's ID is tagged `OP` and highlighted.
+
+## Submission cooldown
+
+Every IP hash is rate-limited to **one submission (post or comment) every 2 minutes**. This is layered on top of the 8/min per-IP rate limit and the per-submission captcha/PoW.
 
 ## What it doesn't do (by design)
 

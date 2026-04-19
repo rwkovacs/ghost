@@ -1,9 +1,12 @@
 <%- include('partials/header') %>
+<% const qerr = typeof locals !== 'undefined' && locals.qerr ? locals.qerr : null; %>
 <article class="post-full <%= post.removed ? 'removed' : '' %>">
   <div class="sub-line">
     <a href="/g/<%= post.sub %>">g/<%= post.sub %></a>
     · <%= new Date(post.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+    · ID <span class="poster-id op" title="thread-unique poster ID">#<%= opPosterId %></span> <span class="op-tag">OP</span>
     · score <span id="post-score"><%= post.score %></span>
+    · <%= uniquePosters %> posters in thread
   </div>
   <h1><%= post.removed ? '[removed]' : post.title %></h1>
   <% if (post.url && !post.removed) { %>
@@ -20,10 +23,12 @@
 
 <section class="comment-form">
   <h2>add a comment</h2>
+  <% if (typeof errMsg !== 'undefined' && errMsg) { %><p class="error"><%= errMsg %></p><% } %>
   <form method="post" action="/g/<%= post.sub %>/<%= post.id %>/comment" class="cform">
-    <textarea name="body" required maxlength="10000" rows="5" placeholder="Speak freely. You're anonymous."></textarea>
+    <textarea name="body" required maxlength="10000" rows="5" placeholder="Speak freely. You're anonymous — but every poster has a thread-unique ID."></textarea>
     <%- include('partials/captcha') %>
     <button type="submit">post comment</button>
+    <p class="muted">One submission every 2 minutes per IP.</p>
   </form>
 </section>
 
@@ -32,7 +37,9 @@
   <% comments.forEach(c => { %>
     <div class="comment <%= c.removed ? 'removed' : '' %>" id="c<%= c.id %>">
       <div class="sub-line">
-        anon · <%= new Date(c.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+        ID <span class="poster-id <%= c.is_op ? 'op' : '' %>" title="thread-unique poster ID">#<%= c.poster_id %></span>
+        <% if (c.is_op) { %><span class="op-tag">OP</span><% } %>
+        · <%= new Date(c.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
         · score <span id="c-score-<%= c.id %>"><%= c.score %></span>
       </div>
       <div class="body"><%= c.removed ? '[removed]' : c.body %></div>

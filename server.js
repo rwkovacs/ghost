@@ -10,6 +10,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'change-me';
 const IP_SALT = process.env.IP_SALT || crypto.randomBytes(16).toString('hex');
+const POSTER_ID_SECRET = process.env.POSTER_ID_SECRET || crypto.randomBytes(32).toString('hex');
+const SUBMIT_COOLDOWN_MS = 2 * 60 * 1000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -24,6 +26,23 @@ function ipHash(req) {
 
 function isBanned(req) {
   return !!db.prepare('SELECT 1 FROM bans WHERE ip_hash = ?').get(ipHash(req));
+}
+
+function posterId(threadId, ipHashValue) {
+  return crypto
+    .createHmac('sha256', POSTER_ID_SECRET)
+    .update(String(threadId) + '|' + ipHashValue)
+    .digest('hex')
+    .slice(0, 8);
+}
+
+function cooldownRemainingMs(ipHashValue) {
+  const lastPost = db.prepare('SELECT created_at FROM posts WHERE ip_hash = ? ORDER BY created_at DESC LIMIT 1').get(ipHashValue);
+  const lastComment = db.prepare('SELECT created_at FROM comments WHERE ip_hash = ? ORDER BY created_at DESC LIMIT 1').get(ipHashValue);
+  const last = Math.max(lastPost ? lastPost.created_at : 0, lastComment ? lastComment.created_at : 0);
+  if (!last) return 0;
+  const remaining = SUBMIT_COOLDOWN_MS - (Date.now() - last);
+  return remaining > 0 ? remaining : 0;
 }
 
 function isAdmin(req) {
@@ -90,8 +109,26 @@ app.get('/g/:sub/:id', (req, res) => {
   const comments = db.prepare(`
     SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC
   `).all(post.id);
+
+  const opPosterId = posterId(post.id, post.ip_hash);
+  const decoratedComments = comments.map(c => ({
+    ...c,
+    poster_id: posterId(post.id, c.ip_hash),
+    is_op: c.ip_hash === post.ip_hash,
+  }));
+  const uniquePosters = new Set([post.ip_hash, ...comments.filter(c => !c.removed).map(c => c.ip_hash)]).size;
+
   const challenge = captcha.issue();
-  res.render('post', { post, comments, challenge, title: post.title });
+  const errMsg = typeof req.query.err === 'string' ? clean(req.query.err, 200) : null;
+  res.render('post', {
+    post,
+    opPosterId,
+    comments: decoratedComments,
+    uniquePosters,
+    challenge,
+    errMsg,
+    title: post.title,
+  });
 });
 
 app.get('/submit', (req, res) => {
@@ -147,6 +184,13 @@ app.post('/submit', writeLimiter, (req, res) => {
 
   const subs = db.prepare('SELECT name FROM subs ORDER BY name').all();
 
+  const cooldown = cooldownRemainingMs(ipHash(req));
+  if (cooldown > 0) {
+    const challenge = captcha.issue();
+    const secs = Math.ceil(cooldown / 1000);
+    return res.status(429).render('submit', { subs, subName: sub, challenge, error: `Slow down — you can post again in ${secs}s (2 min cooldown).`, title: 'submit' });
+  }
+
   const v = captcha.verify({
     token: req.body.captcha_token,
     answer: req.body.captcha_answer,
@@ -188,6 +232,12 @@ app.post('/g/:sub/:id/comment', writeLimiter, (req, res) => {
 
   const body = clean(req.body.body, 10000).trim();
   const parentId = req.body.parent_id ? parseInt(req.body.parent_id, 10) : null;
+
+  const cooldown = cooldownRemainingMs(ipHash(req));
+  if (cooldown > 0) {
+    const secs = Math.ceil(cooldown / 1000);
+    return res.redirect(`/g/${post.sub}/${post.id}?err=${encodeURIComponent(`wait ${secs}s (2 min cooldown)`)}`);
+  }
 
   const v = captcha.verify({
     token: req.body.captcha_token,
