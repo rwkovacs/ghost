@@ -4,13 +4,14 @@
 
 <h2>recent posts</h2>
 <table class="admin-table">
-  <tr><th>id</th><th>sub</th><th>title</th><th>score</th><th>ip_hash</th><th>state</th><th>actions</th></tr>
+  <tr><th>id</th><th>sub</th><th>title</th><th>score</th><th>country</th><th>ip_hash</th><th>state</th><th>actions</th></tr>
   <% posts.forEach(p => { %>
     <tr>
       <td><a href="/g/<%= p.sub %>/<%= p.id %>"><%= p.id %></a></td>
       <td>g/<%= p.sub %></td>
       <td><%= p.title.slice(0,60) %></td>
       <td><%= p.score %></td>
+      <td><%= p.country ? flagEmoji(p.country) + ' ' + p.country : '—' %></td>
       <td class="mono"><%= p.ip_hash.slice(0,12) %>…</td>
       <td><%= p.removed ? 'removed' : 'live' %></td>
       <td class="actions">
@@ -27,12 +28,13 @@
 
 <h2>recent comments</h2>
 <table class="admin-table">
-  <tr><th>id</th><th>post</th><th>body</th><th>ip_hash</th><th>state</th><th>actions</th></tr>
+  <tr><th>id</th><th>post</th><th>body</th><th>country</th><th>ip_hash</th><th>state</th><th>actions</th></tr>
   <% comments.forEach(c => { %>
     <tr>
       <td><%= c.id %></td>
       <td><%= c.post_id %></td>
       <td><%= c.body.slice(0,80) %></td>
+      <td><%= c.country ? flagEmoji(c.country) + ' ' + c.country : '—' %></td>
       <td class="mono"><%= c.ip_hash.slice(0,12) %>…</td>
       <td><%= c.removed ? 'removed' : 'live' %></td>
       <td class="actions">

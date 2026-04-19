@@ -68,6 +68,12 @@ No captcha is truly "unsolvable by bots" in 2026. Modern vision models crack ima
 
 Within a single thread, the same hashed IP always shows the same 8-char poster ID (e.g. `#5859a988`). Across different threads, the same IP gets a different ID — so you can tell "this is the same person in this thread" without tracking them across the site. The OP's ID is tagged `OP` and highlighted.
 
+## Country flags
+
+Each post and comment shows the poster's country as a flag emoji + ISO code (e.g. 🇺🇸 US), looked up from the raw IP at submission time using the bundled `geoip-lite` MaxMind GeoLite database (offline, no third-party calls). The country is stored on the row, so it's stable even if the poster's IP later changes. Unknown/private IPs show 🏴 ??.
+
+Make sure `app.set('trust proxy', N)` matches your proxy depth so `req.ip` gets the real client IP in production, otherwise every request will look like it came from the proxy.
+
 ## Submission cooldown
 
 Every IP hash is rate-limited to **one submission (post or comment) every 2 minutes**. This is layered on top of the 8/min per-IP rate limit and the per-submission captcha/PoW.

@@ -20,6 +20,7 @@ db.exec(`
     url TEXT,
     created_at INTEGER NOT NULL,
     ip_hash TEXT NOT NULL,
+    country TEXT,
     removed INTEGER NOT NULL DEFAULT 0,
     score INTEGER NOT NULL DEFAULT 0
   );
@@ -33,6 +34,7 @@ db.exec(`
     body TEXT NOT NULL,
     created_at INTEGER NOT NULL,
     ip_hash TEXT NOT NULL,
+    country TEXT,
     removed INTEGER NOT NULL DEFAULT 0,
     score INTEGER NOT NULL DEFAULT 0
   );
@@ -52,5 +54,14 @@ db.exec(`
     created_at INTEGER NOT NULL
   );
 `);
+
+function addColumnIfMissing(table, column, type) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some(c => c.name === column)) {
+    db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`).run();
+  }
+}
+addColumnIfMissing('posts', 'country', 'TEXT');
+addColumnIfMissing('comments', 'country', 'TEXT');
 
 module.exports = db;

@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const path = require('path');
+const geoip = require('geoip-lite');
 const db = require('./db');
 const captcha = require('./captcha');
 
@@ -22,6 +23,21 @@ app.set('trust proxy', 1);
 
 function ipHash(req) {
   return crypto.createHash('sha256').update(IP_SALT + (req.ip || '')).digest('hex');
+}
+
+function countryOf(req) {
+  let ip = req.ip || '';
+  if (ip.startsWith('::ffff:')) ip = ip.slice(7);
+  if (!ip || ip === '::1' || ip === '127.0.0.1') return null;
+  const geo = geoip.lookup(ip);
+  return geo && geo.country ? geo.country : null;
+}
+
+function flagEmoji(cc) {
+  if (!cc || cc.length !== 2) return '';
+  const A = 0x1F1E6;
+  const up = cc.toUpperCase();
+  return String.fromCodePoint(A + up.charCodeAt(0) - 65, A + up.charCodeAt(1) - 65);
 }
 
 function isBanned(req) {
@@ -66,6 +82,7 @@ const voteLimiter = rateLimit({
 
 app.use((req, res, next) => {
   res.locals.isAdmin = isAdmin(req);
+  res.locals.flagEmoji = flagEmoji;
   next();
 });
 
@@ -218,9 +235,9 @@ app.post('/submit', writeLimiter, (req, res) => {
   }
 
   const result = db.prepare(`
-    INSERT INTO posts (sub, title, body, url, created_at, ip_hash)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(sub, title, body, url || null, Date.now(), ipHash(req));
+    INSERT INTO posts (sub, title, body, url, created_at, ip_hash, country)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(sub, title, body, url || null, Date.now(), ipHash(req), countryOf(req));
 
   res.redirect(`/g/${sub}/${result.lastInsertRowid}`);
 });
@@ -256,9 +273,9 @@ app.post('/g/:sub/:id/comment', writeLimiter, (req, res) => {
   }
 
   db.prepare(`
-    INSERT INTO comments (post_id, parent_id, body, created_at, ip_hash)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(post.id, parentId || null, body, Date.now(), ipHash(req));
+    INSERT INTO comments (post_id, parent_id, body, created_at, ip_hash, country)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(post.id, parentId || null, body, Date.now(), ipHash(req), countryOf(req));
 
   res.redirect(`/g/${post.sub}/${post.id}`);
 });

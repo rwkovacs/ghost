@@ -15,7 +15,8 @@
         <a class="ext" href="<%= p.url %>" rel="nofollow noopener" target="_blank">(link)</a>
       <% } %>
       <div class="sub-line">
-        <%= new Date(p.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+        <span class="flag" title="<%= p.country || 'unknown' %>"><%= p.country ? flagEmoji(p.country) + ' ' + p.country : '🏴 ??' %></span>
+        · <%= new Date(p.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
         · <a href="/g/<%= p.sub %>/<%= p.id %>"><%= p.comment_count %> comments</a>
       </div>
     </div>

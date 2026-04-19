@@ -4,6 +4,7 @@
   <div class="sub-line">
     <a href="/g/<%= post.sub %>">g/<%= post.sub %></a>
     · <%= new Date(post.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+    · <span class="flag" title="<%= post.country || 'unknown' %>"><%= post.country ? flagEmoji(post.country) + ' ' + post.country : '🏴 ??' %></span>
     · ID <span class="poster-id op" title="thread-unique poster ID">#<%= opPosterId %></span> <span class="op-tag">OP</span>
     · score <span id="post-score"><%= post.score %></span>
     · <%= uniquePosters %> posters in thread
@@ -37,7 +38,8 @@
   <% comments.forEach(c => { %>
     <div class="comment <%= c.removed ? 'removed' : '' %>" id="c<%= c.id %>">
       <div class="sub-line">
-        ID <span class="poster-id <%= c.is_op ? 'op' : '' %>" title="thread-unique poster ID">#<%= c.poster_id %></span>
+        <span class="flag" title="<%= c.country || 'unknown' %>"><%= c.country ? flagEmoji(c.country) + ' ' + c.country : '🏴 ??' %></span>
+        · ID <span class="poster-id <%= c.is_op ? 'op' : '' %>" title="thread-unique poster ID">#<%= c.poster_id %></span>
         <% if (c.is_op) { %><span class="op-tag">OP</span><% } %>
         · <%= new Date(c.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
         · score <span id="c-score-<%= c.id %>"><%= c.score %></span>
