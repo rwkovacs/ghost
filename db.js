@@ -64,4 +64,14 @@ function addColumnIfMissing(table, column, type) {
 addColumnIfMissing('posts', 'country', 'TEXT');
 addColumnIfMissing('comments', 'country', 'TEXT');
 
+const seedSub = db.prepare('INSERT OR IGNORE INTO subs (name, description, created_at) VALUES (?, ?, ?)');
+const seedAt = Date.now();
+for (const [name, description] of [
+  ['technology', 'Tech news, hardware, software, and the industry.'],
+  ['geopolitics', 'Global politics, international relations, and foreign policy.'],
+  ['videogames', 'Video games — new releases, discussion, and the industry.'],
+]) {
+  seedSub.run(name, description, seedAt);
+}
+
 module.exports = db;

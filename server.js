@@ -91,10 +91,6 @@ function clean(s, max = 10000) {
   return s.slice(0, max);
 }
 
-function validSubName(name) {
-  return /^[a-z0-9_]{2,24}$/.test(name);
-}
-
 app.get('/', (req, res) => {
   const posts = db.prepare(`
     SELECT p.*, (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id AND c.removed = 0) AS comment_count
@@ -153,43 +149,6 @@ app.get('/submit', (req, res) => {
   const subs = db.prepare('SELECT name FROM subs ORDER BY name').all();
   const challenge = captcha.issue();
   res.render('submit', { subs, subName, challenge, error: null, title: 'submit' });
-});
-
-app.get('/new-ghost', (req, res) => {
-  const challenge = captcha.issue();
-  res.render('create-sub', { challenge, error: null, title: 'new ghost' });
-});
-
-app.post('/new-ghost', writeLimiter, (req, res) => {
-  if (isBanned(req)) return res.status(403).render('error', { message: 'Banned.', title: '403' });
-  const name = clean(req.body.name, 32).toLowerCase().trim();
-  const description = clean(req.body.description, 500);
-
-  const v = captcha.verify({
-    token: req.body.captcha_token,
-    answer: req.body.captcha_answer,
-    powNonce: req.body.pow_nonce,
-    honeypot: req.body.website,
-    usedTokens: captcha.usedTokens,
-  });
-  if (!v.ok) {
-    const challenge = captcha.issue();
-    return res.status(400).render('create-sub', { challenge, error: v.reason, title: 'new ghost' });
-  }
-
-  if (!validSubName(name)) {
-    const challenge = captcha.issue();
-    return res.status(400).render('create-sub', { challenge, error: 'Name must be 2–24 chars: a-z, 0-9, _', title: 'new ghost' });
-  }
-  const exists = db.prepare('SELECT 1 FROM subs WHERE name = ?').get(name);
-  if (exists) {
-    const challenge = captcha.issue();
-    return res.status(400).render('create-sub', { challenge, error: 'That ghost already exists.', title: 'new ghost' });
-  }
-
-  db.prepare('INSERT INTO subs (name, description, created_at) VALUES (?, ?, ?)')
-    .run(name, description, Date.now());
-  res.redirect('/g/' + name);
 });
 
 app.post('/submit', writeLimiter, (req, res) => {
