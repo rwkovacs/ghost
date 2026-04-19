@@ -1,0 +1,11 @@
+<fieldset class="captcha">
+  <legend>anti-bot challenge</legend>
+  <input type="hidden" name="captcha_token" value="<%= challenge.token %>">
+  <input type="hidden" name="pow_nonce" id="pow_nonce" value="">
+  <input type="hidden" name="pow_challenge" id="pow_challenge" value="<%= challenge.powChallenge %>">
+  <input type="hidden" name="pow_difficulty" id="pow_difficulty" value="<%= challenge.powDifficulty %>">
+  <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+  <label>What is <strong><%= challenge.question %></strong>? <input type="number" name="captcha_answer" required inputmode="numeric" autocomplete="off"></label>
+  <p class="pow-status" id="pow_status">solving proof-of-work…</p>
+</fieldset>
+<script src="/static/pow.js"></script>

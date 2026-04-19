@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+<article class="post-full <%= post.removed ? 'removed' : '' %>">
+  <div class="sub-line">
+    <a href="/g/<%= post.sub %>">g/<%= post.sub %></a>
+    · <%= new Date(post.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+    · score <span id="post-score"><%= post.score %></span>
+  </div>
+  <h1><%= post.removed ? '[removed]' : post.title %></h1>
+  <% if (post.url && !post.removed) { %>
+    <p><a href="<%= post.url %>" rel="nofollow noopener" target="_blank"><%= post.url %></a></p>
+  <% } %>
+  <% if (post.body && !post.removed) { %>
+    <div class="body"><%= post.body %></div>
+  <% } %>
+  <div class="vote-row">
+    <button class="vote" data-kind="post" data-id="<%= post.id %>" data-value="1">▲ upvote</button>
+    <button class="vote" data-kind="post" data-id="<%= post.id %>" data-value="-1">▼ downvote</button>
+  </div>
+</article>
+
+<section class="comment-form">
+  <h2>add a comment</h2>
+  <form method="post" action="/g/<%= post.sub %>/<%= post.id %>/comment" class="cform">
+    <textarea name="body" required maxlength="10000" rows="5" placeholder="Speak freely. You're anonymous."></textarea>
+    <%- include('partials/captcha') %>
+    <button type="submit">post comment</button>
+  </form>
+</section>
+
+<section class="comments">
+  <h2><%= comments.length %> comments</h2>
+  <% comments.forEach(c => { %>
+    <div class="comment <%= c.removed ? 'removed' : '' %>" id="c<%= c.id %>">
+      <div class="sub-line">
+        anon · <%= new Date(c.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+        · score <span id="c-score-<%= c.id %>"><%= c.score %></span>
+      </div>
+      <div class="body"><%= c.removed ? '[removed]' : c.body %></div>
+      <div class="vote-row">
+        <button class="vote" data-kind="comment" data-id="<%= c.id %>" data-value="1">▲</button>
+        <button class="vote" data-kind="comment" data-id="<%= c.id %>" data-value="-1">▼</button>
+      </div>
+    </div>
+  <% }); %>
+</section>
+
+<script src="/static/vote.js"></script>
+<%- include('partials/footer') %>

@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+<h1>g/<%= sub.name %></h1>
+<p class="muted"><%= sub.description || 'No description.' %></p>
+<p><a class="btn" href="/submit?sub=<%= sub.name %>">+ submit to g/<%= sub.name %></a></p>
+
+<% if (posts.length === 0) { %>
+  <p class="muted">No posts here yet.</p>
+<% } %>
+<% posts.forEach(p => { %>
+  <article class="post-card <%= p.removed ? 'removed' : '' %>">
+    <div class="score"><span><%= p.score %></span></div>
+    <div class="meta">
+      <a class="title" href="/g/<%= p.sub %>/<%= p.id %>"><%= p.removed ? '[removed]' : p.title %></a>
+      <% if (p.url && !p.removed) { %>
+        <a class="ext" href="<%= p.url %>" rel="nofollow noopener" target="_blank">(link)</a>
+      <% } %>
+      <div class="sub-line">
+        <%= new Date(p.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+        · <a href="/g/<%= p.sub %>/<%= p.id %>"><%= p.comment_count %> comments</a>
+      </div>
+    </div>
+  </article>
+<% }); %>
+<%- include('partials/footer') %>

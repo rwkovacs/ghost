@@ -1,0 +1,37 @@
+<%- include('partials/header') %>
+<div class="layout">
+  <section class="feed">
+    <h1>latest</h1>
+    <% if (posts.length === 0) { %>
+      <p class="muted">No posts yet. <a href="/submit">Submit one.</a></p>
+    <% } %>
+    <% posts.forEach(p => { %>
+      <article class="post-card <%= p.removed ? 'removed' : '' %>">
+        <div class="score">
+          <span><%= p.score %></span>
+        </div>
+        <div class="meta">
+          <a class="title" href="/g/<%= p.sub %>/<%= p.id %>"><%= p.removed ? '[removed]' : p.title %></a>
+          <% if (p.url && !p.removed) { %>
+            <a class="ext" href="<%= p.url %>" rel="nofollow noopener" target="_blank">(link)</a>
+          <% } %>
+          <div class="sub-line">
+            <a href="/g/<%= p.sub %>">g/<%= p.sub %></a>
+            · <%= new Date(p.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
+            · <a href="/g/<%= p.sub %>/<%= p.id %>"><%= p.comment_count %> comments</a>
+          </div>
+        </div>
+      </article>
+    <% }); %>
+  </section>
+  <aside class="sidebar">
+    <h2>ghosts</h2>
+    <ul class="subs">
+      <% subs.forEach(s => { %>
+        <li><a href="/g/<%= s.name %>">g/<%= s.name %></a></li>
+      <% }); %>
+    </ul>
+    <p><a href="/new-ghost" class="btn">+ new ghost</a></p>
+  </aside>
+</div>
+<%- include('partials/footer') %>

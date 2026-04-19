@@ -1,0 +1,64 @@
+<%- include('partials/header') %>
+<h1>admin</h1>
+<form method="post" action="/admin/logout" style="display:inline"><button type="submit">logout</button></form>
+
+<h2>recent posts</h2>
+<table class="admin-table">
+  <tr><th>id</th><th>sub</th><th>title</th><th>score</th><th>ip_hash</th><th>state</th><th>actions</th></tr>
+  <% posts.forEach(p => { %>
+    <tr>
+      <td><a href="/g/<%= p.sub %>/<%= p.id %>"><%= p.id %></a></td>
+      <td>g/<%= p.sub %></td>
+      <td><%= p.title.slice(0,60) %></td>
+      <td><%= p.score %></td>
+      <td class="mono"><%= p.ip_hash.slice(0,12) %>…</td>
+      <td><%= p.removed ? 'removed' : 'live' %></td>
+      <td class="actions">
+        <% if (p.removed) { %>
+          <form method="post" action="/admin/restore"><input type="hidden" name="kind" value="post"><input type="hidden" name="id" value="<%= p.id %>"><button>restore</button></form>
+        <% } else { %>
+          <form method="post" action="/admin/remove"><input type="hidden" name="kind" value="post"><input type="hidden" name="id" value="<%= p.id %>"><button>remove</button></form>
+        <% } %>
+        <form method="post" action="/admin/ban"><input type="hidden" name="kind" value="post"><input type="hidden" name="id" value="<%= p.id %>"><input type="text" name="reason" placeholder="reason"><button>ban poster</button></form>
+      </td>
+    </tr>
+  <% }); %>
+</table>
+
+<h2>recent comments</h2>
+<table class="admin-table">
+  <tr><th>id</th><th>post</th><th>body</th><th>ip_hash</th><th>state</th><th>actions</th></tr>
+  <% comments.forEach(c => { %>
+    <tr>
+      <td><%= c.id %></td>
+      <td><%= c.post_id %></td>
+      <td><%= c.body.slice(0,80) %></td>
+      <td class="mono"><%= c.ip_hash.slice(0,12) %>…</td>
+      <td><%= c.removed ? 'removed' : 'live' %></td>
+      <td class="actions">
+        <% if (c.removed) { %>
+          <form method="post" action="/admin/restore"><input type="hidden" name="kind" value="comment"><input type="hidden" name="id" value="<%= c.id %>"><button>restore</button></form>
+        <% } else { %>
+          <form method="post" action="/admin/remove"><input type="hidden" name="kind" value="comment"><input type="hidden" name="id" value="<%= c.id %>"><button>remove</button></form>
+        <% } %>
+        <form method="post" action="/admin/ban"><input type="hidden" name="kind" value="comment"><input type="hidden" name="id" value="<%= c.id %>"><input type="text" name="reason" placeholder="reason"><button>ban</button></form>
+      </td>
+    </tr>
+  <% }); %>
+</table>
+
+<h2>bans</h2>
+<table class="admin-table">
+  <tr><th>ip_hash</th><th>reason</th><th>when</th><th></th></tr>
+  <% bans.forEach(b => { %>
+    <tr>
+      <td class="mono"><%= b.ip_hash.slice(0,16) %>…</td>
+      <td><%= b.reason %></td>
+      <td><%= new Date(b.created_at).toISOString().slice(0,16).replace('T',' ') %></td>
+      <td>
+        <form method="post" action="/admin/unban"><input type="hidden" name="ip_hash" value="<%= b.ip_hash %>"><button>unban</button></form>
+      </td>
+    </tr>
+  <% }); %>
+</table>
+<%- include('partials/footer') %>
