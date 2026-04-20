@@ -13,7 +13,6 @@ ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
 
-VOLUME ["/app/data"]
 ENV DB_PATH=/app/data/ghost.db
 
 CMD ["node", "server.js"]
