@@ -1,8 +1,11 @@
 <%- include('partials/header') %>
-<h1>admin login</h1>
+<div class="board-head">
+  <h1>admin</h1>
+  <p class="desc">Sign in to moderate.</p>
+</div>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form method="post" action="/admin/login" class="cform">
   <label>password <input type="password" name="password" required autofocus></label>
-  <button type="submit">login</button>
+  <button type="submit" class="primary">login</button>
 </form>
 <%- include('partials/footer') %>

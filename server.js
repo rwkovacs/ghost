@@ -83,6 +83,7 @@ const voteLimiter = rateLimit({
 app.use((req, res, next) => {
   res.locals.isAdmin = isAdmin(req);
   res.locals.flagEmoji = flagEmoji;
+  res.locals.boards = db.prepare('SELECT name FROM subs ORDER BY name LIMIT 50').all();
   next();
 });
 

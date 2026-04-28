@@ -1,19 +1,22 @@
 <%- include('partials/header') %>
-<h1>submit</h1>
+<div class="board-head">
+  <h1>new thread</h1>
+  <p class="desc">Anonymous post — no account required. Be civil-ish.</p>
+</div>
 <% if (error) { %><p class="error"><%= error %></p><% } %>
 <form method="post" action="/submit" class="cform">
-  <label>ghost
+  <label>board
     <select name="sub" required>
-      <option value="">-- pick a ghost --</option>
+      <option value="">— pick a board —</option>
       <% subs.forEach(s => { %>
-        <option value="<%= s.name %>" <%= s.name === subName ? 'selected' : '' %>>g/<%= s.name %></option>
+        <option value="<%= s.name %>" <%= s.name === subName ? 'selected' : '' %>>/g/<%= s.name %>/</option>
       <% }); %>
     </select>
   </label>
-  <label>title <input type="text" name="title" maxlength="300" required></label>
+  <label>title <input type="text" name="title" maxlength="300" required placeholder="thread title"></label>
   <label>link (optional) <input type="url" name="url" maxlength="2000" placeholder="https://..."></label>
-  <label>body (optional) <textarea name="body" rows="8" maxlength="20000"></textarea></label>
+  <label>body (optional) <textarea name="body" rows="8" maxlength="20000" placeholder="&gt;greentext supported&#10;your post here"></textarea></label>
   <%- include('partials/captcha') %>
-  <button type="submit">submit anonymously</button>
+  <button type="submit" class="primary">post anonymously</button>
 </form>
 <%- include('partials/footer') %>

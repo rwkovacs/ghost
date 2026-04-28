@@ -1,50 +1,68 @@
 <%- include('partials/header') %>
-<% const qerr = typeof locals !== 'undefined' && locals.qerr ? locals.qerr : null; %>
+<%
+  const qerr = typeof locals !== 'undefined' && locals.qerr ? locals.qerr : null;
+  // greentext renderer: escape HTML then style lines starting with '>'
+  function renderBody(s) {
+    const esc = String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return esc.split('\n').map(line =>
+      /^&gt;/.test(line) ? '<span class="gt">' + line + '</span>' : line
+    ).join('\n');
+  }
+%>
 <article class="post-full <%= post.removed ? 'removed' : '' %>">
   <div class="sub-line">
-    <a href="/g/<%= post.sub %>">g/<%= post.sub %></a>
-    · <%= new Date(post.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
-    · <span class="flag" title="<%= post.country || 'unknown' %>"><%= post.country ? flagEmoji(post.country) + ' ' + post.country : '🏴 ??' %></span>
-    · ID <span class="poster-id op" title="thread-unique poster ID">#<%= opPosterId %></span> <span class="op-tag">OP</span>
-    · score <span id="post-score"><%= post.score %></span>
-    · <%= uniquePosters %> posters in thread
+    <a href="/g/<%= post.sub %>">/g/<%= post.sub %>/</a>
+    <span class="dot">·</span>
+    <span><%= new Date(post.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC</span>
+    <span class="dot">·</span>
+    <span class="flag" title="<%= post.country || 'unknown' %>"><%= post.country ? flagEmoji(post.country) + ' ' + post.country : '🏴 ??' %></span>
+    <span class="dot">·</span>
+    <span>ID <span class="poster-id op" title="thread-unique poster ID">#<%= opPosterId %></span> <span class="op-tag">OP</span></span>
+    <span class="dot">·</span>
+    <span>score <span id="post-score"><%= post.score %></span></span>
+    <span class="dot">·</span>
+    <span><%= uniquePosters %> posters</span>
   </div>
   <h1><%= post.removed ? '[removed]' : post.title %></h1>
   <% if (post.url && !post.removed) { %>
     <p><a href="<%= post.url %>" rel="nofollow noopener" target="_blank"><%= post.url %></a></p>
   <% } %>
   <% if (post.body && !post.removed) { %>
-    <div class="body"><%= post.body %></div>
+    <div class="body"><%- renderBody(post.body) %></div>
   <% } %>
   <div class="vote-row">
-    <button class="vote" data-kind="post" data-id="<%= post.id %>" data-value="1">▲ upvote</button>
-    <button class="vote" data-kind="post" data-id="<%= post.id %>" data-value="-1">▼ downvote</button>
+    <button class="vote" data-kind="post" data-id="<%= post.id %>" data-value="1">▲ up</button>
+    <button class="vote" data-kind="post" data-id="<%= post.id %>" data-value="-1">▼ down</button>
   </div>
 </article>
 
 <section class="comment-form">
-  <h2>add a comment</h2>
+  <h2>reply to thread</h2>
   <% if (typeof errMsg !== 'undefined' && errMsg) { %><p class="error"><%= errMsg %></p><% } %>
   <form method="post" action="/g/<%= post.sub %>/<%= post.id %>/comment" class="cform">
-    <textarea name="body" required maxlength="10000" rows="5" placeholder="Speak freely. You're anonymous — but every poster has a thread-unique ID."></textarea>
+    <textarea name="body" required maxlength="10000" rows="5" placeholder="&gt;reply here&#10;Lines starting with &gt; render as greentext. You're anonymous — but every poster has a thread-unique ID."></textarea>
     <%- include('partials/captcha') %>
-    <button type="submit">post comment</button>
-    <p class="muted">One submission every 2 minutes per IP.</p>
+    <button type="submit" class="primary">post reply</button>
+    <p class="notice">One submission every 2 minutes per IP.</p>
   </form>
 </section>
 
 <section class="comments">
-  <h2><%= comments.length %> comments</h2>
+  <h2><%= comments.length %> replies</h2>
   <% comments.forEach(c => { %>
-    <div class="comment <%= c.removed ? 'removed' : '' %>" id="c<%= c.id %>">
+    <div class="comment <%= c.is_op ? 'op' : '' %> <%= c.removed ? 'removed' : '' %>" id="c<%= c.id %>">
       <div class="sub-line">
         <span class="flag" title="<%= c.country || 'unknown' %>"><%= c.country ? flagEmoji(c.country) + ' ' + c.country : '🏴 ??' %></span>
-        · ID <span class="poster-id <%= c.is_op ? 'op' : '' %>" title="thread-unique poster ID">#<%= c.poster_id %></span>
+        <span class="dot">·</span>
+        <span>ID <span class="poster-id <%= c.is_op ? 'op' : '' %>" title="thread-unique poster ID">#<%= c.poster_id %></span></span>
         <% if (c.is_op) { %><span class="op-tag">OP</span><% } %>
-        · <%= new Date(c.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC
-        · score <span id="c-score-<%= c.id %>"><%= c.score %></span>
+        <span class="dot">·</span>
+        <span><%= new Date(c.created_at).toISOString().slice(0,16).replace('T',' ') %> UTC</span>
+        <span class="dot">·</span>
+        <span>score <span id="c-score-<%= c.id %>"><%= c.score %></span></span>
       </div>
-      <div class="body"><%= c.removed ? '[removed]' : c.body %></div>
+      <div class="body"><%- c.removed ? '[removed]' : renderBody(c.body) %></div>
       <div class="vote-row">
         <button class="vote" data-kind="comment" data-id="<%= c.id %>" data-value="1">▲</button>
         <button class="vote" data-kind="comment" data-id="<%= c.id %>" data-value="-1">▼</button>

@@ -1,5 +1,7 @@
 <%- include('partials/header') %>
-<h1><%= title %></h1>
-<p><%= message %></p>
-<p><a href="/">home</a></p>
+<div class="board-head">
+  <h1><%= title %></h1>
+  <p class="desc"><%= message %></p>
+  <div class="actions"><a class="btn" href="/">← back to home</a></div>
+</div>
 <%- include('partials/footer') %>

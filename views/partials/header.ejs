@@ -10,8 +10,16 @@
 <header class="topbar">
   <a href="/" class="brand">ghost</a>
   <nav>
-    <a href="/submit">submit</a>
+    <a href="/">home</a>
+    <a href="/submit">+ new thread</a>
     <a href="/admin">admin</a>
   </nav>
 </header>
+<% if (typeof boards !== 'undefined' && boards && boards.length) { %>
+<div class="boardstrip">
+  <span class="label">[</span>
+  <% boards.forEach((b, i) => { %><% if (i > 0) { %><span class="sep">/</span><% } %><a href="/g/<%= b.name %>"><%= b.name %></a><% }); %>
+  <span class="label">]</span>
+</div>
+<% } %>
 <main class="container">
